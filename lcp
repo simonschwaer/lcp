@@ -1,0 +1,135 @@
+#!/bin/sh
+
+# setting defaults
+date_adjust="0"
+device=""
+location=""
+unit=""
+overwrite=
+checksum=true
+
+# get configuration from arguments
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-a) date_adjust="$2"; shift;;
+		-d) device="$2"; shift;;
+		-u) unit="$2_"; shift;;
+		-l) location="_$2"; shift;;
+		-o) overwrite="$2"; shift;;
+		-f) checksum=false;;
+		--)	shift; break;;
+		-*)
+		echo >&2 \
+		"usage: lcp [-f] [-a adjustment_in_days] [-l location_name] [-u unit_name] [-d device_name] [-o cardnumber_overwrite] source target [target2 …]"
+		exit 1;;
+	*) break;;
+    esac
+    shift
+done
+
+# read missing but neccessary configuration from prompt
+if [[ $location == "" ]]; then
+	read -p "Enter a location (or project) name: " location
+	location="_$location"
+fi
+
+if [[ $unit == "" ]]; then
+	read -p "Enter a unit name: " unit
+fi
+
+if [[ $device == "" ]]; then
+	read -p "Enter a device name: " device
+	device="_$device"
+fi
+
+# process date with possible date adjustment
+if [[ $date_adjust != -* ]]; then
+	date_adjust="+$date_adjust"
+fi
+date=$(date -j -v${date_adjust}d +"%Y-%m-%d")
+
+
+# big loop over all targets
+source_folder=$1; shift
+
+pids=""
+processes=0
+folders=""
+
+while [ $# -gt 0 ]; do
+
+	# check if target is available
+	if ! [[ -d "$1" ]]; then
+		echo >&2 \
+		"The target directory \"$1\" does not exist. Aborting mission."
+		exit 1;
+	fi
+
+	# create main folder if it's not already there
+	main_folder="${1}/${date}${location}/${unit}${device}"
+
+	echo "Creating main directory ${main_folder}/ (if it doesn't already exist)."
+	mkdir -p "$main_folder"
+
+	# create the subfolder
+	sub_folder=
+	if ! [ -z "$overwrite" ]; then
+		echo "Using the overwrite card number \"${overwrite}\"."
+		sub_folder=$overwrite
+	else
+		sub_folder=001
+		n=1
+		while [[ -d "${main_folder}/${sub_folder}" ]]; do
+		    n=$(($n+1))
+		    sub_folder=$(printf "%0*d\n" 3 ${n})
+		done
+	fi
+
+	if [[ -d "${main_folder}/${sub_folder}" ]]; then
+		echo >&2 \
+		"Card sub directory already exists. Aborting mission."
+		exit 1;
+	else
+		mkdir "${main_folder}/${sub_folder}"
+		echo "Creating sub directory ${sub_folder}."
+	fi
+
+	# copy action
+	echo "\n"
+	rsync -avrph --progress "${source_folder}/" "${main_folder}/${sub_folder}" > copy.log &
+	pids="$pids $!"
+	processes=$((processes+1))
+	folders="$folders ${main_folder}/${sub_folder}"
+
+
+	# shift to the next target (concurrent copying)
+	shift
+done
+
+#intercepting termination signals
+trap "kill $pids; rm copy.log; exit" SIGHUP SIGINT SIGTERM
+
+# wait for all processes to finish…
+echo "Waiting for ${processes} copy processes to finish…\n"
+for pid in $pids; do wait $pid; done
+
+if [ "$checksum" = true ]; then
+	echo "Checking if all files from the source have been copied and have the same size…"
+	for folder in $folders; do
+		echo "Comparing $source_folder with ${folder}…"
+		find "${source_folder}" -type f -not -path '*/\.*' | sort | sed 's/.*/"&"/' | xargs ls -l | awk '{print $5,$8}' > src.txt
+		find "${folder}" -type f -not -path '*/\.*' | sort | sed 's/.*/"&"/' | xargs ls -l | awk '{print $5,$8}' > dest.txt
+		diff src.txt dest.txt
+		rm src.txt dest.txt
+	done
+else
+	echo "Skipping file check on request."
+fi
+
+# moving copy.log to destination folders
+for folder in $folders; do
+	mv copy.log "${folder}/copy.log"
+done
+
+echo "Done!\n"
+
