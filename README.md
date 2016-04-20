@@ -2,7 +2,7 @@
 
 Safely copy and organize data from multiple recording units and/or devices in a project.
 
-lcp creates a folder structure named `[date]_[location]/[unit]_[device]/[card number] in the target directory, copies all files from the source to every specified target simultaneously and finally checks if the files have been transferred completely.
+lcp creates a folder structure named `[date]_[location]/[unit]_[device]/[card number]` in the target directory, copies all files from the source to every specified target simultaneously and finally checks if the files have been transferred completely.
 
 ## Usage
 
