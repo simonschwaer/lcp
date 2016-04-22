@@ -4,6 +4,9 @@ Safely copy and organize data from multiple recording units and/or devices in a 
 
 lcp creates a folder structure named `[date]_[location]/[unit]_[device]/[card number]` in the target directory, copies all files from the source to every specified target simultaneously and finally checks if the files have been transferred completely.
 
+## Installation
+Place the shell script in a location in your PATH environment variable and make it executable.
+
 ## Usage
 
 ```
@@ -11,22 +14,22 @@ lcp [-f] [-a adjustment_in_days] [-l location_name] [-u unit_name] [-d device_na
 ```
 
 **-a [signed integer]**
-Adjust the date used for the main folder. E.g. -1 uses yesterdays date, 1 copies stuff to tomorrow.
+Adjust the date used for the main folder. E.g. *-1* uses yesterdays date, *1* copies stuff to tomorrow.
 
 **-d [string]**
-Specify the device used. E.g. Alexa, Sequoia, KitchenAid…
+Specify the device used. E.g. *Alexa*, *Sequoia*, *KitchenAid*…
 
 **-f**
 Force lcp to skip the final transfer check.
 
 **-l [string]**
-Specify the location. Can also be used for project name. E.g. Düsseldorf, StudioA, Moms_Livingroom
+Specify the location. Can also be used for project name. E.g. *Düsseldorf*, *StudioA*, *Moms_Livingroom*
 
 **-o [string]**
-Overwrite the card number. If nothing is specified, lcp will start with 001 and increment the card number if more files are copied with the same date/location/unit/device combination.
+Overwrite the card number. If nothing is specified, lcp will start with *001* and increment the card number if more files are copied with the same date/location/unit/device combination.
 
 **-u [string]**
-Specify the unit. E.g. ENG, Jib, Sound…
+Specify the unit. E.g. *ENG*, *Jib*, *Audio*…
 
 Location, Unit and Device are required. lcp will ask for them if they are not specified in arguments.
 
