@@ -1,5 +1,19 @@
 #!/bin/sh
 
+# intercepting termination signals
+trap clean_up SIGHUP SIGINT SIGTERM
+
+# housekeeping
+function clean_up {
+	echo "\n\nlcp was stopped by user request. The targets are not complete and the copy process should be restarted.\n"
+	if ! [ -z "$pids" ]; then
+		kill "$pids"
+		for pid in $pids; do wait $pid 2>/dev/null; done
+	fi
+	rm -f copy.log src.txt dest.txt
+	exit 0
+}
+
 # setting defaults
 date_adjust="0"
 device=""
@@ -105,9 +119,6 @@ while [ $# -gt 0 ]; do
 	# shift to the next target (concurrent copying)
 	shift
 done
-
-#intercepting termination signals
-trap "kill $pids; rm copy.log; exit" SIGHUP SIGINT SIGTERM
 
 # wait for all processes to finish…
 echo "Waiting for ${processes} copy processes to finish…\n"
