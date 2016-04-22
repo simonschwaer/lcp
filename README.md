@@ -10,22 +10,22 @@ lcp creates a folder structure named `[date]_[location]/[unit]_[device]/[card nu
 lcp [-f] [-a adjustment_in_days] [-l location_name] [-u unit_name] [-d device_name] [-o cardnumber_overwrite] source target [target2 …]
 ```
 
-##### -a [signed integer]
+**-a [signed integer]**
 Adjust the date used for the main folder. E.g. -1 uses yesterdays date, 1 copies stuff to tomorrow.
 
-##### -d [string]
+**-d [string]**
 Specify the device used. E.g. Alexa, Sequoia, KitchenAid…
 
-##### -f
+**-f**
 Force lcp to skip the final transfer check.
 
-##### -l [string]
+**-l [string]**
 Specify the location. Can also be used for project name. E.g. Düsseldorf, StudioA, Moms_Livingroom
 
-##### -o [string]
+**-o [string]**
 Overwrite the card number. If nothing is specified, lcp will start with 001 and increment the card number if more files are copied with the same date/location/unit/device combination.
 
-##### -u [string]
+**-u [string]**
 Specify the unit. E.g. ENG, Jib, Sound…
 
 Location, Unit and Device are required. lcp will ask for them if they are not specified in arguments.
