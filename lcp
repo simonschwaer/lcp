@@ -139,8 +139,9 @@ fi
 
 # moving copy.log to destination folders
 for folder in $folders; do
-	mv copy.log "${folder}/copy.log"
+	cp copy.log "${folder}/copy.log"
 done
+rm copy.log
 
 echo "Done!\n"
 
